@@ -8,7 +8,7 @@ use angora_common::{cond_stmt_base::CondStmtBase, config, defs, log_data::LogDat
 pub struct Logger {
     data: LogData,
     fd: Option<fs::File>,
-    order_map: HashMap<(u32, u32), u32>,
+    order_map: HashMap<(i32, u32), u32>,
 }
 
 impl Logger {

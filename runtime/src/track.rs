@@ -43,7 +43,7 @@ pub extern "C" fn __angora_trace_cmp_tt(
 
 #[no_mangle]
 pub extern "C" fn __dfsw___angora_trace_cmp_tt(
-    cmpid: u32,
+    cmpid: i32,
     context: u32,
     last_callsite: u32,
     //dominates_callsite: u32,
@@ -92,7 +92,7 @@ pub extern "C" fn __angora_trace_switch_tt(
 
 #[no_mangle]
 pub extern "C" fn __dfsw___angora_trace_switch_tt(
-    cmpid: u32,
+    cmpid: i32,
     context: u32,
     last_callsite: u32,
     size: u32,
@@ -165,7 +165,7 @@ pub extern "C" fn __angora_trace_fn_tt(
 
 #[no_mangle]
 pub extern "C" fn __dfsw___angora_trace_fn_tt(
-    cmpid: u32,
+    cmpid: i32,
     context: u32,
     last_callsite: u32,
     size: u32,
@@ -239,7 +239,7 @@ pub extern "C" fn __angora_trace_exploit_val_tt(
 
 #[no_mangle]
 pub extern "C" fn __dfsw___angora_trace_exploit_val_tt(
-    cmpid: u32,
+    cmpid: i32,
     context: u32,
     last_callsite: u32,
     size: u32,
@@ -264,7 +264,7 @@ pub extern "C" fn __dfsw___angora_trace_exploit_val_tt(
 #[allow(dead_code)]
 #[inline]
 fn log_cmp(
-    cmpid: u32,
+    cmpid: i32,
     context: u32,
     condition: u32,
     op: u32,
@@ -281,7 +281,7 @@ fn log_cmp(
 
 #[inline]
 fn log_cmp_callsite(
-    cmpid: u32,
+    cmpid: i32,
     context: u32,
     last_callsite: u32,
     condition: u32,

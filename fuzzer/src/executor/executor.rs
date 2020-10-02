@@ -205,7 +205,7 @@ impl Executor {
         (status, output)
     }
 
-    fn try_unlimited_memory(&mut self, buf: &Vec<u8>, cmpid: u32) -> bool {
+    fn try_unlimited_memory(&mut self, buf: &Vec<u8>, cmpid: i32) -> bool {
         let mut skip = false;
         self.branches.clear_trace();
         if self.cmd.is_stdin {
@@ -231,7 +231,7 @@ impl Executor {
         skip
     }
 
-    fn do_if_has_new(&mut self, buf: &Vec<u8>, status: StatusType, _explored: bool, cmpid: u32) {
+    fn do_if_has_new(&mut self, buf: &Vec<u8>, status: StatusType, _explored: bool, cmpid: i32) {
         // new edge: one byte in bitmap
         let (has_new_path, has_new_edge, edge_num) = self.branches.has_new(status, self.is_directed);
 

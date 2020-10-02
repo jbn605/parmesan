@@ -114,7 +114,7 @@ impl CondStmt {
         let mut afl_cond = Self::new();
         afl_cond.speed = speed;
         afl_cond.base.op = defs::COND_AFL_OP;
-        afl_cond.base.cmpid = id as u32;
+        afl_cond.base.cmpid = id as i32;
         afl_cond.base.context = 0;
         afl_cond.base.order = 0;
         afl_cond.base.arg1 = edge_num as u64;

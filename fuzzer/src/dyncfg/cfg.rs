@@ -7,7 +7,7 @@ use petgraph::{Incoming, Outgoing};
 use angora_common::tag::TagSeg;
 use super::fparse::CfgFile;
 
-pub type CmpId = u32;
+pub type CmpId = i32;
 pub type CallSiteId = u32;
 pub type Edge = (CmpId, CmpId);
 pub type Score = u32;

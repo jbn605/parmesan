@@ -41,7 +41,7 @@ impl Depot {
         status: &StatusType,
         buf: &Vec<u8>,
         num: &AtomicUsize,
-        cmpid: u32,
+        cmpid: i32,
         dir: &Path,
     ) -> usize {
         let id = num.fetch_add(1, Ordering::Relaxed);
@@ -59,7 +59,7 @@ impl Depot {
         id
     }
 
-    pub fn save(&self, status: StatusType, buf: &Vec<u8>, cmpid: u32) -> usize {
+    pub fn save(&self, status: StatusType, buf: &Vec<u8>, cmpid: i32) -> usize {
         match status {
             StatusType::Normal => {
                 Self::save_input(&status, buf, &self.num_inputs, cmpid, &self.dirs.inputs_dir)

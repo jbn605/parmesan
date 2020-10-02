@@ -4,7 +4,7 @@ use serde_derive::{Deserialize, Serialize};
 #[derive(Debug, Clone, Default, Copy, Serialize, Deserialize)]
 #[repr(C)] // It should be repr C since we will used it in shared memory
 pub struct CondStmtBase {
-    pub cmpid: u32,
+    pub cmpid: i32,
     pub context: u32,
     pub last_callsite: u32,
     pub order: u32,

@@ -16,7 +16,7 @@ fn fast_init() {
 #[no_mangle]
 pub extern "C" fn __angora_trace_cmp(
     condition: u32,
-    cmpid: u32,
+    cmpid: i32,
     context: u32,
     arg1: u64,
     arg2: u64,
@@ -34,7 +34,7 @@ pub extern "C" fn __angora_trace_cmp(
 }
 
 #[no_mangle]
-pub extern "C" fn __angora_trace_switch(cmpid: u32, context: u32, condition: u64) -> u64 {
+pub extern "C" fn __angora_trace_switch(cmpid: i32, context: u32, condition: u64) -> u64 {
     let mut conds = shm_conds::SHM_CONDS.lock().expect("SHM mutex poisoned.");
     match conds.deref_mut() {
         &mut Some(ref mut c) => {

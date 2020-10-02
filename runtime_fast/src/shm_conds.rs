@@ -6,10 +6,10 @@ use super::context;
 use lazy_static::lazy_static;
 
 #[no_mangle]
-static mut __angora_cond_cmpid: u32 = 0;
+static mut __angora_cond_cmpid: i32 = 0;
 
 #[inline(always)]
-fn set_cmpid(cid: u32) {
+fn set_cmpid(cid: i32) {
     unsafe {
         __angora_cond_cmpid = cid;
     }
@@ -46,7 +46,7 @@ impl ShmConds {
         self.cond.lb1 = condition;
     }
 
-    pub fn check_match(&mut self, cmpid: u32, context: u32) -> bool {
+    pub fn check_match(&mut self, cmpid: i32, context: u32) -> bool {
         if self.cond.cmpid == cmpid && self.cond.context == context {
             self.rt_order += 1;
             if self.cond.order & 0xFFFF == self.rt_order {

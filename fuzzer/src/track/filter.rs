@@ -10,7 +10,7 @@ use std::{
 };
 
 struct CondArgs {
-    pub cmpid: u32,
+    pub cmpid: i32,
     pub lb1: u32,
     pub lb2: u32,
     pub arg1: u64,
