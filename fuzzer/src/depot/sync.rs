@@ -25,6 +25,7 @@ pub fn sync_depot(executor: &mut Executor, running: Arc<AtomicBool>, dir: &Path)
                     fs::metadata(path).expect("Could not fetch metadata.").len() as usize;
                 if file_len < config::MAX_INPUT_LEN {
                     let buf = read_from_file(path);
+                    info!("reading from file: {:?}", path);
                     executor.run_sync(&buf);
                 } else {
                     warn!("Seed discarded, too long: {:?}", path);

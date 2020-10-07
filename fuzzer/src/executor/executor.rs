@@ -269,6 +269,9 @@ impl Executor {
                 }
             }
         }
+        else {
+            info!("File offers no new path, skipping...");
+        }
     }
 
     pub fn run(&mut self, buf: &Vec<u8>, cond: &mut cond_stmt::CondStmt) -> StatusType {

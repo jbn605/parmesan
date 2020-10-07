@@ -215,8 +215,13 @@ impl ControlFlowGraph {
     }
 
     pub fn has_path_to_target(&self, target: CmpId) -> bool {
+        info!("target in has_path_to_target: {:?}", target);
+        for t in self.targets.iter() {
+            info!("target: {:?}, {:?}", t, (*t as u16));
+        }
         let mut dfs = Dfs::new(&self.graph, target);
         while let Some(visited) = dfs.next(&self.graph) {
+            info!("visited: {:?} {:?}", &visited, visited);
             if self.targets.contains(&visited) {
                 return true;
             }

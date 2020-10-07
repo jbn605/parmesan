@@ -100,7 +100,9 @@ impl Branches {
                 for j in 0..ENTRY_SIZE {
                     let idx = base + j;
                     let new_val = buf[idx];
+                    // info!("in get_path new_val: {:?}", new_val);
                     if new_val > 0 {
+                        // info!("new_val in path: {:?} {:?}", new_val, idx, );
                         path.push((idx, COUNT_LOOKUP[new_val as usize]))
                     }
                 }
@@ -123,6 +125,15 @@ impl Branches {
     }
 
     pub fn has_new(&mut self, status: StatusType, directed: bool) -> (bool, bool, usize) {
+        if status == StatusType::Normal {
+            info!("statustype normal: fetch virgin branches");
+        }
+        if status == StatusType::Timeout {
+            info!("statustype timeout: fetch tmouts branches");
+        }
+        if status == StatusType::Crash {
+            info!("statustype crash: fetch crash branches");
+        }
         let gb_map = match status {
             StatusType::Normal => &self.global.virgin_branches,
             StatusType::Timeout => &self.global.tmouts_branches,
@@ -132,6 +143,9 @@ impl Branches {
             },
         };
         let path = self.get_path();
+        for path_part in path.iter() {
+            info!("path_part: {:?}", path_part);
+        }
         let edge_num = path.len();
 
         let mut to_write = vec![];
@@ -141,6 +155,7 @@ impl Branches {
             // read only
             let gb_map_read = gb_map.read().unwrap();
             for &br in &path {
+                // info!("br.0 {:?} br.1 {:?}", br.0, br.1);
                 let gb_v = gb_map_read[br.0];
 
                 if gb_v == 255u8 {
@@ -186,6 +201,7 @@ impl Branches {
         let mut has_new_directed_edge = false;
         for &br in &to_write {
             let dyncfg = self.global.cfg.read().unwrap();
+            info!("Is there a path to target? {:?} {:?}", br.0 as CmpId, br.0);
             if dyncfg.has_path_to_target(br.0 as CmpId) {
                 has_new_directed_edge = true;
                 break;
