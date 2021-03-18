@@ -47,7 +47,7 @@ macro_rules! cast {
 }
 
 pub struct GlobalBranches {
-    virgin_branches: RwLock<Box<BranchBuf>>,
+    pub virgin_branches: RwLock<Box<BranchBuf>>,
     tmouts_branches: RwLock<Box<BranchBuf>>,
     crashes_branches: RwLock<Box<BranchBuf>>,
     density: AtomicUsize,
@@ -95,12 +95,16 @@ impl Branches {
         let buf_plus: &BranchBufPlus = cast!(&*self.trace);
         let buf: &BranchBuf = &*self.trace;
         for (i, &v) in buf_plus.iter().enumerate() {
+            // if v != 0 as u64 {
+            //     debug!("in for loop: {:?}, {:?}", i, &v);
+            // }
             macro_rules! run_loop { () => {{
                 let base = i * ENTRY_SIZE;
                 for j in 0..ENTRY_SIZE {
                     let idx = base + j;
                     let new_val = buf[idx];
                     if new_val > 0 {
+                        // debug!("pushing with newval: {:?}; idx: {:?}", new_val, idx);
                         path.push((idx, COUNT_LOOKUP[new_val as usize]))
                     }
                 }
@@ -140,18 +144,23 @@ impl Branches {
         {
             // read only
             let gb_map_read = gb_map.read().unwrap();
+            // debug!("PRINTING THE PATH: {:?}", path);
+            // debug!("value of 36823: {:?}", &self.global.virgin_branches.read().unwrap()[36823]);
             for &br in &path {
+                // debug!("another branch!");
                 let gb_v = gb_map_read[br.0];
 
                 if gb_v == 255u8 {
                     num_new_edge += 1;
                 }
-
+                // debug!("branch: {:?}; {:?}; {:?}", br, gb_v, (br.1 & gb_v) > 0);
                 if (br.1 & gb_v) > 0 {
+                    // debug!("pushing to_write vector");
                     to_write.push((br.0, gb_v & (!br.1)));
                 }
             }
         }
+        // debug!("Do I get to here? START");
 
         if num_new_edge > 0 {
             if status == StatusType::Normal {
@@ -175,6 +184,8 @@ impl Branches {
             return (false, false, edge_num);
         }
 
+        // debug!("Do I get to here? MIDDLE");
+
         {
             // write
             let mut gb_map_write = gb_map.write().unwrap();
@@ -191,6 +202,7 @@ impl Branches {
                 break;
             }
         }
+        // debug!("Do I get to here? END");
 
         //(has_new_directed_edge, has_new_edge, edge_num)
         (if !directed {true} else {has_new_directed_edge}, has_new_edge, edge_num)

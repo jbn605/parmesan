@@ -2,6 +2,17 @@
 ##########
 # added by user
 #########
+fun:mbtowc=uninstrumented
+fun:mbtowc=discard
+fun:__ctype_get_mb_cur_max=uninstrumented
+fun:__ctype_get_mb_cur_max=discard
+fun:setenv=uninstrumented
+fun:setenv=discard
+fun:ftello=uninstrumented
+fun:ftello=discard
+fun:wcrtomb=uninstrumented
+fun:wcrtomb=discard
+
 fun:dfsan_mark_signed=uninstrumented
 fun:dfsan_mark_signed=discard
 fun:dfsan_combine_and_ins=uninstrumented

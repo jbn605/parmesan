@@ -20,7 +20,10 @@ bb_cmp_map = {}
 
 def exec_and_collect_log(cmd, input_file):
     track_log_file = os.path.join(os.getcwd(), "profile_track.out")
-    envs = {"ANGORA_TRACK_OUTPUT": f"{track_log_file}"}
+    # envs = {"ANGORA_TRACK_OUTPUT": f"{track_log_file}"}
+    envs = {}
+    envs["LD_LIBRARY_PATH"] = os.environ["LD_LIBRARY_PATH"]
+    envs["ANGORA_TRACK_OUTPUT"] = track_log_file
     cmd = list(map(lambda e: input_file if e == "@@" else e, cmd))
     ret = subprocess.call(cmd, env=envs, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     if ret != 0:
@@ -59,7 +62,7 @@ def collect_func_diff_weights(diff_file):
                 line = line.strip()
                 if len(line) > 0 and line[0] == ">":
                     count += 1
-                if line.startswith("in block"):
+                if line.startswith("in block") and not line.startswith("in block %cdce.end"): 
                     # Collect basic blocks belonging to function
                     bb_id = line.split()[5][1:-2]
                     bbs.add(bb_id)

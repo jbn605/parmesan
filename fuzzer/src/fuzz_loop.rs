@@ -25,6 +25,7 @@ pub fn fuzz_loop(
 
     let san_cmd_opt = cmd_opt.sanopt();
     debug!("san_cmd_opt: {:?}", san_cmd_opt);
+    debug!("value of 36823: {:?}", &global_branches.virgin_branches.read().unwrap()[36823]);
     let mut sanitized_executor = Executor::new(
         san_cmd_opt,
         global_branches.clone(),
@@ -88,7 +89,7 @@ pub fn fuzz_loop(
                     // Avoid sanitized binary when exploring
                 },
                  _ => {
-                    cur_executor = &mut sanitized_executor;
+                    cur_executor = &mut executor;
                 },
             }
             

@@ -235,6 +235,8 @@ impl Executor {
         // new edge: one byte in bitmap
         let (has_new_path, has_new_edge, edge_num) = self.branches.has_new(status, self.is_directed);
 
+        debug!("HAS_NEW_PATH?: {:?}", has_new_path);
+
         if has_new_path {
             self.has_new_path = true;
             self.local_stats.find_new(&status);
@@ -273,7 +275,9 @@ impl Executor {
 
     pub fn run(&mut self, buf: &Vec<u8>, cond: &mut cond_stmt::CondStmt) -> StatusType {
         self.run_init();
+        debug!("going into run inner: {:?}", buf);
         let status = self.run_inner(buf);
+        debug!("going into do_if_has_new: {:?}", buf);
         self.do_if_has_new(buf, status, false, 0);
         self.check_timeout(status, cond)
     }

@@ -784,6 +784,7 @@ void AngoraLLVMPass::visitCmpInst(Instruction *Inst) {
   if (!InsertPoint || isa<ConstantInt>(Inst))
     return;
   Constant *Cid = ConstantInt::get(Int32Ty, getInstructionId(Inst));
+  // errs() << "TESTS: " << *ConstantInt::get(Int32Ty, 224234) << " " << *ConstantInt::get(Int32Ty, 2698000000) << " " << *ConstantInt::get(Int32Ty, 3133594251) << "\n";
   processCmp(Inst, Cid, InsertPoint);
 }
 
