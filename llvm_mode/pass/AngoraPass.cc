@@ -230,6 +230,7 @@ void AngoraLLVMPass::initVariables(Module &M) {
   if (ModName.size() == 0)
     FATAL("No ModName!\n");
   ModId = hashName(ModName);
+  ModId = 1;
   errs() << "ModName: " << ModName << " -- " << ModId << "\n";
   is_bc = 0 == ModName.compare(ModName.length() - 3, 3, ".bc");
   if (is_bc) {

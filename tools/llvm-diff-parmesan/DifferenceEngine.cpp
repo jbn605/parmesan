@@ -27,6 +27,7 @@
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/Support/type_traits.h"
 #include <utility>
+#include <string>
 
 using namespace llvm;
 
@@ -224,6 +225,8 @@ class FunctionDifferenceEngine {
   void runBlockDiff(BasicBlock::iterator LI, BasicBlock::iterator RI);
 
   bool diffCallSites(CallSite L, CallSite R, bool Complain) {
+    // TODO: REMOVE TEMP:
+    Complain = true;
     // FIXME: call attributes
     if (!equivalentAsOperands(L.getCalledValue(), R.getCalledValue())) {
       if (Complain) Engine.log("called functions differ");
@@ -235,6 +238,11 @@ class FunctionDifferenceEngine {
     }
     for (unsigned I = 0, E = L.arg_size(); I != E; ++I)
       if (!equivalentAsOperands(L.getArgument(I), R.getArgument(I))) {
+        // If called function is @__angora_trace_cmp or @__angora_trace_switch we can ignore the differences in CmpIDs (I = 1 / I = 0)
+        if (L.getCalledValue()->getName() == "__angora_trace_cmp" && I == 1)
+          continue;
+        if (L.getCalledValue()->getName() == "__angora_trace_switch" && I == 0)
+          continue;
         if (Complain)
           Engine.logf("arguments %l and %r differ")
             << L.getArgument(I) << R.getArgument(I);
@@ -244,11 +252,13 @@ class FunctionDifferenceEngine {
   }
 
   bool diff(Instruction *L, Instruction *R, bool Complain, bool TryUnify) {
+    // TODO: REMOVE TEMP:
+    // Complain = true;
     // FIXME: metadata (if Complain is set)
 
     // Different opcodes always imply different operations.
     if (L->getOpcode() != R->getOpcode()) {
-      if (Complain) Engine.log("different instruction types");
+      if (Complain) Engine.log("different instruction types: " + std::to_string(L->getOpcode()) + " & " + std::to_string(R->getOpcode()) );
       return true;
     }
 
@@ -371,6 +381,7 @@ class FunctionDifferenceEngine {
     for (unsigned I = 0, E = L->getNumOperands(); I != E; ++I) {
       Value *LO = L->getOperand(I), *RO = R->getOperand(I);
       if (!equivalentAsOperands(LO, RO)) {
+        if (LO->getName().find("angora") || RO->getName().find("angora")) break;
         if (Complain) Engine.logf("operands %l and %r differ") << LO << RO;
         return true;
       }
