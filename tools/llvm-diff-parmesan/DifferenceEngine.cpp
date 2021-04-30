@@ -243,6 +243,9 @@ class FunctionDifferenceEngine {
           continue;
         if (L.getCalledValue()->getName() == "__angora_trace_switch" && I == 0)
           continue;
+        // This one also does weird stuff because asan points to a different line number
+        if (L.getCalledValue()->getName() == "__assert_fail" && I == 2)
+          continue;
         if (Complain)
           Engine.logf("arguments %l and %r differ")
             << L.getArgument(I) << R.getArgument(I);
