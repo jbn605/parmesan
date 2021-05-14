@@ -16,6 +16,7 @@ TARGETS_FILE = "targets.json"
 ERROR_COLOR= "\033[91m"
 WARN_COLOR= "\033[33m"
 END_COLOR= "\033[0m"
+DELIMITER= ","
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description="get cve summary from git repository")
@@ -29,7 +30,9 @@ def parse_arguments():
     parser.add_argument("-D", action="store_const", const=True, default=False, dest="debug_env", help="enable backtrace and debug logging for the parmesan fuzzer")
     parser.add_argument("-f", action="store_const", const=True, default=False, dest="fuzz_only", help="skip building and fetching targets, go straight to fuzzing")
     parser.add_argument("-c", action="store", dest="commit_id", help="Use a given commit to classify")
+    parser.add_argument("-C", type=str, dest="commit_list", help="Use a file with commits that will be fuzzed one by one (denominated by ',')")
     parser.add_argument("-b", action="store", type=str, default="", dest="branch", help="change the git branch")
+    parser.add_argument("--build-coverage", action="store_const", const=True, default=False, dest="build_coverage", help="build an unpatched repository that has coverage instrumented")
     # parser.add_argument("-ca", action="store", type=str, default="", dest="clone_arguments", help="clone arguments when using a git repository. This is where you would specify attributes like 'depth' or 'branch'")
     return parser.parse_args()
 
@@ -51,6 +54,20 @@ def extract_cve_summary(cves, commit_date):
         database_summaries["cve_summary"] = r["summary"]
     # print(database_summaries)
     return database_summaries
+
+def parse_commit_list(commit_list_file):
+    parsed_commit_list = []
+
+    with open(commit_list_file, 'r') as f:
+        lines = f.readlines()
+        for line in lines:
+            commits_line = line.split(DELIMITER)
+            for commit in commits_line:
+                # Strip newline and spaces etc.
+                parsed_commit_list.append([commit.strip(), {}])
+            # parsed_commit_list.extend(commits_line)
+
+    return parsed_commit_list
 
 def search_repo(repo_path, show_all):
     all_potential_vulnerabilities, _, _ = find(repo_path)
@@ -76,8 +93,8 @@ def fetch_repo(download_link, repo_path, commit_branch):
     else:
         Repo.clone_from(download_link, repo_path)
 
-def build(repo_path, build_file_path):
-    process = subprocess.Popen([build_file_path, repo_path])
+def build(repo_path, build_file_path, build_coverage):
+    process = subprocess.Popen([build_file_path, repo_path, SCRIPT_DIR, build_coverage])
     process.communicate()
     rc = process.returncode
     if (rc == 1) :
@@ -150,9 +167,10 @@ def fuzz(unpatched_repo_path, timeout, debug_env):
     process.communicate
     return process
 
-def classify(vuln, repo_path, download_link, commit_branch, build_file_path, timeout, debug_env, fuzz_only):
+def classify(vuln, repo_path, download_link, commit_branch, build_file_path, timeout, debug_env, fuzz_only, build_coverage):
 
     unpatched_repo_path = repo_path + "-unpatched"
+    coverage_repo_path = repo_path + "-unpatched-cov"
     if (not fuzz_only):
         # Get both the patched and unpacthed version
         # Most recent commit has already been fetched, checkout to the patched version
@@ -171,11 +189,26 @@ def classify(vuln, repo_path, download_link, commit_branch, build_file_path, tim
         unpatched_repo.create_head('unpatched_branch', patched_commit + "^")
         unpatched_repo.heads.unpatched_branch.checkout()
 
-        print("Building... (1/2)")
-        build(repo_path, build_file_path)
+        # Code coverage repo
+        num_builds = 2
+        if (build_coverage):
+            num_builds = 3
+            fetch_repo(download_link, coverage_repo_path, commit_branch)
+            cov_repo = Repo(coverage_repo_path)
+            assert not cov_repo.bare
+            # One back
+            cov_repo.create_head('cov_branch', patched_commit + "^")
+            cov_repo.heads.cov_branch.checkout()
 
-        print("Building... (2/2)")
-        build(unpatched_repo_path, build_file_path)
+        # Start building
+        print(f"Building... (1/{num_builds})")
+        build(repo_path, build_file_path, "false")
+
+        print(f"Building... (2/{num_builds})")
+        build(unpatched_repo_path, build_file_path, "false")
+
+        if (build_coverage):
+            build(coverage_repo_path, build_file_path, "true")
 
         print("Targets built! Extracting targets")
         extract_targets(repo_path, unpatched_repo_path)
@@ -204,13 +237,13 @@ def classify_commit_id(args):
     if (args.classify_all):
         print(f"{WARN_COLOR}WARNING{END_COLOR}: skipping classify all as specific commit ({args.commit_id}) is given.")
     vulnerability = [args.commit_id, {}]
-    classify(vulnerability, norm_repo_path, args.download_link, args.branch, args.build_file_path, args.timeout, args.debug_env, args.fuzz_only)
+    classify(vulnerability, norm_repo_path, args.download_link, args.branch, args.build_file_path, args.timeout, args.debug_env, args.fuzz_only, args.build_coverage)
 
 def classify_all(vulns, args):
     # Try to classify all vulnerabilities
     for i, vuln in enumerate(vulns):
         print("Processing vulnerability", i, ": ", vuln)
-        classify(vuln, norm_repo_path, args.download_link, args.branch, args.build_file_path, args.timeout, args.debug_env, args.fuzz_only)
+        classify(vuln, norm_repo_path, args.download_link, args.branch, args.build_file_path, args.timeout, args.debug_env, args.fuzz_only, args.build_coverage)
 
 def classify_option_choice_loop(vulns, num_vulns):
     classify_print_vulns(vulns)
@@ -240,7 +273,7 @@ def classify_option(vulns, args):
     valid_option_num = classify_option_choice_loop(vulns, num_vulns)
     
     valid_option = vulns[valid_option_num]
-    classify(valid_option, norm_repo_path, args.download_link, args.branch, args.build_file_path, args.timeout, args.debug_env, args.fuzz_only)
+    classify(valid_option, norm_repo_path, args.download_link, args.branch, args.build_file_path, args.timeout, args.debug_env, args.fuzz_only, args.build_coverage)
 
 if __name__ == "__main__":
 
@@ -258,6 +291,9 @@ if __name__ == "__main__":
     # Classify a specific commit, classify all vulnerabilities, or print out a list of vulnerabilities to classify.
     if (args.show_only):
         classify_print_vulns(vulnerabilities)
+    elif (args.commit_list):
+        parsed_commit_list = parse_commit_list(args.commit_list)
+        classify_all(parsed_commit_list, args)
     elif (args.commit_id):
         classify_commit_id(args)
     elif (args.classify_all):
